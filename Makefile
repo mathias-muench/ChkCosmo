@@ -1,4 +1,4 @@
-CFLAGS = -ansi -g
+CFLAGS = -ansi -g -Wdeprecated-declarations
 LDFLAGS = -lm
 
 color_updown: color_updown.o lodepng.o
