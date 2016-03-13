@@ -1,6 +1,10 @@
 CFLAGS = -ansi -g
+LDFLAGS = -lm
 
 color_updown: color_updown.o lodepng.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+remap: remap.o lodepng.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
