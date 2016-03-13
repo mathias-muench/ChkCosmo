@@ -30,60 +30,54 @@ static double lat_rad(double lat) {
 void doit(const char* filename)
 {
   unsigned error;
-  unsigned char* image;
+  unsigned int* image;
   unsigned width, height;
   double lon;
   double lat;
   int x, y;
 
-  error = lodepng_decode24_file(&image, &width, &height, filename);
+  error = lodepng_decode32_file((unsigned char **)&image, &width, &height, filename);
   if(error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
   for (lat = 45; lat <= 50; lat += 5) {
   for (lon = 10; lon <= 16; lon += 0.001) {
-	  unsigned char *r, *g, *b;
+	  unsigned int *p;
 	  x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 	  y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-	  r = image + ((y * width + x) * 3 + 0);
-	  g = image + ((y * width + x) * 3 + 1);
-	  b = image + ((y * width + x) * 3 + 2);
-	  *r = *g = *b = 255;
+	  p = image + (y * width + x);
+	  *p = 0xffffffff;
   }
   }
 
   for (lon = 4; lon <= 16; lon += 6) {
   for (lat = 45; lat <= 50; lat += 0.001) {
-	  unsigned char *r, *g, *b;
+	  unsigned int *p;
 	  x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 	  y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-	  r = image + ((y * width + x) * 3 + 0);
-	  g = image + ((y * width + x) * 3 + 1);
-	  b = image + ((y * width + x) * 3 + 2);
-	  *r = *g = *b = 255;
+	  p = image + (y * width + x);
+	  *p = 0xffffffff;
   }
 
   char line[80];
   while (gets(line)) {
     int bg, bm, lg, lm;
     if (line[0] == 'B') {
-	  unsigned char *r, *g, *b;
+	  unsigned int *p;
       sscanf(line, "%*7c%2d%5d%*c%3d%5d", &bg, &bm, &lg, &lm);
 	lat = bg + bm / 60000.0;
         lon = lg + lm / 60000.0;
 printf("%f %f\n", lat, lon);
 	  x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 	  y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-	  r = image + ((y * width + x) * 3 + 0);
-	  g = image + ((y * width + x) * 3 + 1);
-	  b = image + ((y * width + x) * 3 + 2);
-	  *r = *g = *b = 0;
+	  p = image + (y * width + x);
+	  *p = 0xff000000;
     }
 }
 /*B0905444743497N01226360EA008410096300308971*/
 
 }
 
-  error = lodepng_encode24_file("xx.png", image, width, height);
+  error = lodepng_encode32_file("xx.png", (unsigned char *)image, width, height);
   if(error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
   free(image);
