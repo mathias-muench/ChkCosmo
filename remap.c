@@ -59,18 +59,25 @@ void doit(const char* filename)
   }
 
   char line[80];
+  int skip = 0;
+  int lh = 0;
   while (gets(line)) {
-    int bg, bm, lg, lm;
-    if (line[0] == 'B') {
+    int bg, bm, lg, lm, bh, dh;
+    if (line[0] == 'B' && skip++ % 1 == 0) {
 	  unsigned int *p;
-      sscanf(line, "%*7c%2d%5d%*c%3d%5d", &bg, &bm, &lg, &lm);
+      sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg, &lm, &bh);
+	if (lh != 0) {
+	dh = bh - lh;
 	lat = bg + bm / 60000.0;
         lon = lg + lm / 60000.0;
-printf("%f %f\n", lat, lon);
+	dh = bh - lh;
+printf("%f %f %d\n", lat, lon, dh);
 	  x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 	  y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
 	  p = image + (y * width + x);
 	  *p = 0xff000000;
+	}
+		lh = bh;
     }
 }
 /*B0905444743497N01226360EA008410096300308971*/
