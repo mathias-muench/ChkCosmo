@@ -62,33 +62,63 @@ void doit(const char *filename)
 	    p = image + (y * width + x);
 	    *p = 0xffffffff;
 	}
-
-	char line[80];
-	int skip = 0;
-	int lh = 0;
-	while (gets(line)) {
-	    int bg, bm, lg, lm, bh, dh;
-	    if (line[0] == 'B' && skip++ % 1 == 0) {
-		unsigned int *p;
-		sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg,
-		       &lm, &bh);
-		if (lh != 0) {
-		    dh = bh - lh;
-		    lat = bg + bm / 60000.0;
-		    lon = lg + lm / 60000.0;
-		    dh = bh - lh;
-		    printf("%f %f %d\n", lat, lon, dh);
-		    x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
-		    y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-		    p = image + (y * width + x);
-		    *p = 0xff000000;
-		}
-		lh = bh;
-	    }
-	}
-/*B0905444743497N01226360EA008410096300308971*/
-
     }
+
+
+    char line[80];
+    int lh = 0;
+    while (gets(line)) {
+	int bg, bm, lg, lm, bh;
+	double dh;
+	double du;
+	if (line[0] == 'B') {
+	    unsigned int *p;
+	    sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg,
+		   &lm, &bh);
+	    if (lh != 0) {
+		lat = bg + bm / 60000.0;
+		lon = lg + lm / 60000.0;
+		dh = bh - lh;
+		x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
+		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
+		p = image + (y * width + x);
+		if (*p == 0xFFFF00FF) {
+		    du = 4.0;
+		} else if (*p == 0xFFC837FF) {
+		    du = 2.5;
+		} else if (*p == 0xFF6F42FF) {
+		    du = 1.5;
+		} else if (*p == 0xFF4040FF) {
+		    du = 1.0;
+		} else if (*p == 0xFF5277FF) {
+		    du = 0.75;
+		} else if (*p == 0xFF6BC1FF) {
+		    du = 0.5;
+		} else if (*p == 0xFF80FFFF) {
+		    du = 0.25;
+		} else if (*p == 0xFFF3FFC1) {
+		    du = -0.25;
+		} else if (*p == 0xFFF8DC75) {
+		    du = -0.5;
+		} else if (*p == 0xFFFBC543) {
+		    du = -0.75;
+		} else if (*p == 0xFFFEA803) {
+		    du = -1.0;
+		} else if (*p == 0xFFFF9B2B) {
+		    du = -1.5;
+		} else if (*p == 0xFFFF8C59) {
+		    du = -2.5;
+		} else if (*p == 0xFFFF8080) {
+		    du = -4.0;
+		} else {
+		    du = 0.0;
+		}
+		printf("%f %f\n", dh, du);
+	    }
+	    lh = bh;
+	}
+    }
+/*B0905444743497N01226360EA008410096300308971*/
 
     error =
 	lodepng_encode32_file("xx.png", (unsigned char *) image, width,

@@ -24,7 +24,7 @@ void doit(const char *filename)
 		*p = 0xfff0f0f0;
 	    } else if (*p == 0xFFC837FF) {
 		*p = 0xffe0e0e0;
-	    } else if (*p == 0xFF8D42FF) {
+	    } else if (*p == 0xFF6F42FF) {
 		*p = 0xffd0d0d0;
 	    } else if (*p == 0xFF4040FF) {
 		*p = 0xffc0c0c0;
@@ -32,7 +32,7 @@ void doit(const char *filename)
 		*p = 0xffb0b0b0;
 	    } else if (*p == 0xFF6BC1FF) {
 		*p = 0xffa0a0a0;
-	    } else if (*p == 0xFF6EEBFF) {
+	    } else if (*p == 0xFF80FFFF) {
 		*p = 0xff909090;
 	    } else if (*p == 0xFFF3FFC1) {
 		*p = 0xff606060;
@@ -40,7 +40,7 @@ void doit(const char *filename)
 		*p = 0xff505050;
 	    } else if (*p == 0xFFFBC543) {
 		*p = 0xff404040;
-	    } else if (*p == 0xFFFEAA03) {
+	    } else if (*p == 0xFFFEA803) {
 		*p = 0xff303030;
 	    } else if (*p == 0xFFFF9B2B) {
 		*p = 0xff202020;
@@ -49,7 +49,7 @@ void doit(const char *filename)
 	    } else if (*p == 0xFFFF8080) {
 		*p = 0xff000000;
 	    } else {
-		*p = 0xff808080;
+		*p = 0xffff0000;
 	    }
 	}
     }
