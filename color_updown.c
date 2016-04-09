@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "lodepng.h"
+#include "lodepng/lodepng.h"
 
 void doit(const char *filename)
 {

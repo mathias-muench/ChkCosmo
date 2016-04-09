@@ -13,7 +13,7 @@
 #define PI 3.1415
 #define Y_LAT0 (Y_LAT45 - R)
 
-#include "lodepng.h"
+#include "lodepng/lodepng.h"
 
 #include <stdio.h>
 #include <stdlib.h>
