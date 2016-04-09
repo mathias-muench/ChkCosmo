@@ -88,6 +88,12 @@ void doit(const char *dirname, const char *date)
     char line[80];
 	struct fix lf = { 0 };
 	double le = 0.0;
+	double sxy = 0;
+	double sx = 0;
+	double sy = 0;
+	double sxx = 0;
+	double syy = 0;
+	unsigned nr = 0;
 	while (fgets(line, 80, stdin)) {
 		if (line[0] == 'B') {
 			struct fix bf;
@@ -154,6 +160,12 @@ void doit(const char *dirname, const char *date)
 						}
 
 						printf("%6.2f %6.2f\n", dh, du);
+						sxy += dh * du;
+						sx += dh;
+						sy += du;
+						sxx += dh * dh;
+						syy += du * du;
+						nr++;
 					}
 				}
 				le = be;
@@ -161,6 +173,7 @@ void doit(const char *dirname, const char *date)
 			lf = bf;
 		}
 	}
+	printf("# %f %d\n", (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy)), nr);
 
 	free_images(images);
 }
