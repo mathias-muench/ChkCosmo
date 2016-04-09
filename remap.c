@@ -30,7 +30,7 @@ static double lat_rad(double lat)
 }
 
 
-static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *dirname)
+static int load_files(unsigned *out[2], unsigned *w, unsigned *h, const char *dirname)
 {
 	int result = 0;
 
@@ -39,7 +39,7 @@ static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *dirn
     sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%s.png", dirname, 3000, "141104", "1200");
 
 	unsigned error;
-    error = lodepng_decode32_file((unsigned char **) out, w, h, filename);
+    error = lodepng_decode32_file((unsigned char **) &out[0], w, h, filename);
 	if (error) {
 		printf("error %u: %s\n", error, lodepng_error_text(error));
 		result = -1;
@@ -51,13 +51,13 @@ static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *dirn
 void doit(const char *dirname)
 {
 	int error;
-	unsigned *image;
+	unsigned *image[2];
 	unsigned width, height;
     double lon;
     double lat;
     int x, y;
 
-    error = load_files(&image, &width, &height, dirname);
+    error = load_files(image, &width, &height, dirname);
     if (error)
       exit(1);
 
@@ -79,7 +79,7 @@ void doit(const char *dirname)
 		dh = ((bh - lh) + (lh - llh)) / 2;
 		x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-		p = image + (y * width + x);
+		p = image[0] + (y * width + x);
 		if (*p == 0xFFFF00FF) {
 			du = 4.0;
 		} else if (*p == 0xFFC837FF) {
@@ -120,12 +120,12 @@ void doit(const char *dirname)
 /*B0905444743497N01226360EA008410096300308971*/
 
     error =
-	lodepng_encode32_file("xx.png", (unsigned char *) image, width,
+	lodepng_encode32_file("xx.png", (unsigned char *) image[0], width,
 				  height);
     if (error)
 	printf("error %u: %s\n", error, lodepng_error_text(error));
 
-    free(image);
+    free(image[0]);
 }
 
 int main(int argc, char *argv[])
