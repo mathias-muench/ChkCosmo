@@ -29,20 +29,36 @@ static double lat_rad(double lat)
     return ((R / 45.0) * ((94.5 - lat * 1.1)));
 }
 
+
+static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *filename)
+{
+	int result = 0;
+
+	unsigned error;
+    error = lodepng_decode32_file((unsigned char **) out, w, h,
+				  filename);
+	if (error) {
+		printf("error %u: %s\n", error, lodepng_error_text(error));
+		result = -1;
+	}
+
+	return result;
+}
+
 void doit(const char *filename)
 {
-    unsigned error;
-    unsigned int *image;
-    unsigned width, height;
+	int error;
+	unsigned *image;
+	unsigned width, height;
     double lon;
     double lat;
     int x, y;
 
     error =
-	lodepng_decode32_file((unsigned char **) &image, &width, &height,
-			      filename);
+       load_files(&image, &width, &height, filename);
     if (error)
-	printf("error %u: %s\n", error, lodepng_error_text(error));
+      exit(1);
+
 
     char line[80];
     int lh = 0;
@@ -52,10 +68,10 @@ void doit(const char *filename)
 	double dh;
 	double du;
 	if (line[0] == 'B') {
-	    unsigned int *p;
-	    sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg,
+		unsigned int *p;
+		sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg,
 		   &lm, &bh);
-	    if (bh > 4000 && lh != 0 && llh != 0) {
+		if (bh > 3000 && lh != 0 && llh != 0) {
 		lat = bg + bm / 60000.0;
 		lon = lg + lm / 60000.0;
 		dh = ((bh - lh) + (lh - llh)) / 2;
@@ -63,47 +79,47 @@ void doit(const char *filename)
 		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
 		p = image + (y * width + x);
 		if (*p == 0xFFFF00FF) {
-		    du = 4.0;
+			du = 4.0;
 		} else if (*p == 0xFFC837FF) {
-		    du = 2.5;
+			du = 2.5;
 		} else if (*p == 0xFF6F42FF) {
-		    du = 1.5;
+			du = 1.5;
 		} else if (*p == 0xFF4040FF) {
-		    du = 1.0;
+			du = 1.0;
 		} else if (*p == 0xFF5277FF) {
-		    du = 0.75;
+			du = 0.75;
 		} else if (*p == 0xFF6BC1FF) {
-		    du = 0.5;
+			du = 0.5;
 		} else if (*p == 0xFF80FFFF) {
-		    du = 0.25;
+			du = 0.25;
 		} else if (*p == 0xFFF3FFC1) {
-		    du = -0.25;
+			du = -0.25;
 		} else if (*p == 0xFFF8DC75) {
-		    du = -0.5;
+			du = -0.5;
 		} else if (*p == 0xFFFBC543) {
-		    du = -0.75;
+			du = -0.75;
 		} else if (*p == 0xFFFEA803) {
-		    du = -1.0;
+			du = -1.0;
 		} else if (*p == 0xFFFF9B2B) {
-		    du = -1.5;
+			du = -1.5;
 		} else if (*p == 0xFFFF8C59) {
-		    du = -2.5;
+			du = -2.5;
 		} else if (*p == 0xFFFF8080) {
-		    du = -4.0;
+			du = -4.0;
 		} else {
-		    du = 0.0;
+			du = 0.0;
 		}
 		printf("%f %f\n", dh, du);
-	    }
+		}
             llh = lh;
-	    lh = bh;
+		lh = bh;
 	}
     }
 /*B0905444743497N01226360EA008410096300308971*/
 
     error =
 	lodepng_encode32_file("xx.png", (unsigned char *) image, width,
-			      height);
+				  height);
     if (error)
 	printf("error %u: %s\n", error, lodepng_error_text(error));
 
@@ -118,3 +134,6 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+/* vi:ai:sw=4:ts=4:noet
+*/
