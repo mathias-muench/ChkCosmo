@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "lodepng/lodepng.h"
 #include "igcrecords.h"
@@ -31,17 +32,26 @@ static double lat_rad(double lat)
 }
 
 
-static int load_images(unsigned *out[24][2], unsigned *w, unsigned *h, const char *dirname)
+static int load_images(unsigned *out[24][2], unsigned *w, unsigned *h, const char *dirname, const char *date)
 {
 	int result = 0;
 	int altitudes[] = { 3000, 5000 };
+	char dd[7];
+
+	dd[0] = date[2];
+	dd[1] = date[3];
+	dd[2] = date[5];
+	dd[3] = date[6];
+	dd[4] = date[8];
+	dd[5] = date[9];
+	dd[6] = '\0';
 
 	int i, j;
 	for (j = 0; j < 24; j++) {
 		for (i = 0; i < 2; i++) {
 			/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
 			char filename[FILENAME_MAX];
-			sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%02d00.png", dirname, altitudes[i], "141104", j);
+			sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%02d00.png", dirname, altitudes[i], dd, j);
 
 			unsigned error;
 			error = lodepng_decode32_file((unsigned char **) &out[j][i], w, h, filename);
@@ -64,13 +74,13 @@ static void free_images(unsigned *images[24][2]) {
 	}
 }
 
-void doit(const char *dirname)
+void doit(const char *dirname, const char *date)
 {
 	int error;
 	unsigned *images[24][2];
 	unsigned width, height;
 
-    error = load_images(images, &width, &height, dirname);
+    error = load_images(images, &width, &height, dirname, date);
     if (error)
       exit(1);
 
@@ -157,9 +167,9 @@ void doit(const char *dirname)
 
 int main(int argc, char *argv[])
 {
-    const char *dirname = argc > 1 ? argv[1] : "test.png";
+	assert(argc == 3);
 
-    doit(dirname);
+    doit(argv[1], argv[2]);
 
     return 0;
 }
