@@ -69,8 +69,6 @@ void doit(const char *dirname)
 	int error;
 	unsigned *images[24][2];
 	unsigned width, height;
-    double lon;
-    double lat;
     int x, y;
 
     error = load_images(images, &width, &height, dirname);
@@ -85,8 +83,6 @@ void doit(const char *dirname)
 			unsigned int *p;
 			/*B0905444743497N01226360EA008410096300308971*/
 			struct fix bf;
-			int bg, bm, lg, lm;
-			sscanf(line, "B%*2c%*2c%*2c%2d%5d%*c%3d%5d%*2c%*5d", &bg, &bm, &lg, &lm);
 			b_record_to_fix(line, &bf);
 			size_t alt;
 			if (bf.alt >= 4000) {
@@ -99,13 +95,11 @@ void doit(const char *dirname)
 			if (alt != 2 && lf.alt != 0.0 ) {
 				double dh;
 				double du;
-				lat = bg + bm / 60000.0;
-				lon = lg + lm / 60000.0;
 				struct fix df;
 				fix_delta(&df, &bf, &lf);
 				dh = df.alt / (df.time * 3600);
-				x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
-				y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
+				x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
+				y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
 				p = images[(int)bf.time][alt] + (y * width + x);
 				if (*p == 0xFFFF00FF) {
 					du = 4.0;
