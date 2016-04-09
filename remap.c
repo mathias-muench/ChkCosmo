@@ -80,66 +80,66 @@ void doit(const char *dirname)
     char line[80];
     int lh = 0;
     int llh = 0;
-    while (fgets(line, 80, stdin)) {
-	int hr, bg, bm, lg, lm, bh;
-	double dh;
-	double du;
-	if (line[0] == 'B') {
-		unsigned int *p;
-		/*B0905444743497N01226360EA008410096300308971*/
-		sscanf(line, "B%2d%*4c%2d%5d%*c%3d%5d%*2c%5d", &hr, &bg, &bm, &lg, &lm, &bh);
-		size_t alt;
-		if (bh >= 4000) {
-			alt = 1;
-		} else if ( bh >= 3000 ) {
-			alt = 0;
-		} else {
-			alt = 2;
-		}
-		if (hr == 12 && alt != 2 && lh != 0 && llh != 0) {
-			lat = bg + bm / 60000.0;
-			lon = lg + lm / 60000.0;
-			dh = ((bh - lh) + (lh - llh)) / 2;
-			x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
-			y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-			p = images[12][alt] + (y * width + x);
-			if (*p == 0xFFFF00FF) {
-				du = 4.0;
-			} else if (*p == 0xFFC837FF) {
-				du = 2.5;
-			} else if (*p == 0xFF6F42FF) {
-				du = 1.5;
-			} else if (*p == 0xFF4040FF) {
-				du = 1.0;
-			} else if (*p == 0xFF5277FF) {
-				du = 0.75;
-			} else if (*p == 0xFF6BC1FF) {
-				du = 0.5;
-			} else if (*p == 0xFF80FFFF) {
-				du = 0.25;
-			} else if (*p == 0xFFF3FFC1) {
-				du = -0.25;
-			} else if (*p == 0xFFF8DC75) {
-				du = -0.5;
-			} else if (*p == 0xFFFBC543) {
-				du = -0.75;
-			} else if (*p == 0xFFFEA803) {
-				du = -1.0;
-			} else if (*p == 0xFFFF9B2B) {
-				du = -1.5;
-			} else if (*p == 0xFFFF8C59) {
-				du = -2.5;
-			} else if (*p == 0xFFFF8080) {
-				du = -4.0;
+	while (fgets(line, 80, stdin)) {
+		if (line[0] == 'B') {
+			unsigned int *p;
+			/*B0905444743497N01226360EA008410096300308971*/
+			int hr, bg, bm, lg, lm, bh;
+			sscanf(line, "B%2d%*4c%2d%5d%*c%3d%5d%*2c%5d", &hr, &bg, &bm, &lg, &lm, &bh);
+			size_t alt;
+			if (bh >= 4000) {
+				alt = 1;
+			} else if ( bh >= 3000 ) {
+				alt = 0;
 			} else {
-				du = 0.0;
+				alt = 2;
 			}
-			printf("%f %f\n", dh, du);
+			if (alt != 2 && lh != 0 && llh != 0) {
+				double dh;
+				double du;
+				lat = bg + bm / 60000.0;
+				lon = lg + lm / 60000.0;
+				dh = ((bh - lh) + (lh - llh)) / 2;
+				x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
+				y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
+				p = images[hr][alt] + (y * width + x);
+				if (*p == 0xFFFF00FF) {
+					du = 4.0;
+				} else if (*p == 0xFFC837FF) {
+					du = 2.5;
+				} else if (*p == 0xFF6F42FF) {
+					du = 1.5;
+				} else if (*p == 0xFF4040FF) {
+					du = 1.0;
+				} else if (*p == 0xFF5277FF) {
+					du = 0.75;
+				} else if (*p == 0xFF6BC1FF) {
+					du = 0.5;
+				} else if (*p == 0xFF80FFFF) {
+					du = 0.25;
+				} else if (*p == 0xFFF3FFC1) {
+					du = -0.25;
+				} else if (*p == 0xFFF8DC75) {
+					du = -0.5;
+				} else if (*p == 0xFFFBC543) {
+					du = -0.75;
+				} else if (*p == 0xFFFEA803) {
+					du = -1.0;
+				} else if (*p == 0xFFFF9B2B) {
+					du = -1.5;
+				} else if (*p == 0xFFFF8C59) {
+					du = -2.5;
+				} else if (*p == 0xFFFF8080) {
+					du = -4.0;
+				} else {
+					du = 0.0;
+				}
+				printf("%f %f\n", dh, du);
+			}
+			llh = lh;
+			lh = bh;
 		}
-            llh = lh;
-		lh = bh;
 	}
-    }
 
 	free_images(images);
 }
