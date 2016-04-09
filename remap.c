@@ -44,29 +44,9 @@ void doit(const char *filename)
     if (error)
 	printf("error %u: %s\n", error, lodepng_error_text(error));
 
-    for (lat = 45; lat <= 50; lat += 5) {
-	for (lon = 10; lon <= 16; lon += 0.001) {
-	    unsigned int *p;
-	    x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
-	    y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-	    p = image + (y * width + x);
-	    *p = 0xffffffff;
-	}
-    }
-
-    for (lon = 4; lon <= 16; lon += 6) {
-	for (lat = 45; lat <= 50; lat += 0.001) {
-	    unsigned int *p;
-	    x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
-	    y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-	    p = image + (y * width + x);
-	    *p = 0xffffffff;
-	}
-    }
-
-
     char line[80];
     int lh = 0;
+    int llh = 0;
     while (gets(line)) {
 	int bg, bm, lg, lm, bh;
 	double dh;
@@ -75,10 +55,10 @@ void doit(const char *filename)
 	    unsigned int *p;
 	    sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg,
 		   &lm, &bh);
-	    if (lh != 0) {
+	    if (bh > 4000 && lh != 0 && llh != 0) {
 		lat = bg + bm / 60000.0;
 		lon = lg + lm / 60000.0;
-		dh = bh - lh;
+		dh = ((bh - lh) + (lh - llh)) / 2;
 		x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
 		p = image + (y * width + x);
@@ -115,6 +95,7 @@ void doit(const char *filename)
 		}
 		printf("%f %f\n", dh, du);
 	    }
+            llh = lh;
 	    lh = bh;
 	}
     }
