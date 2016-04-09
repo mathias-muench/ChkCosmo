@@ -13,11 +13,12 @@
 #define PI 3.1415
 #define Y_LAT0 (Y_LAT45 - R)
 
-#include "lodepng/lodepng.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+
+#include "lodepng/lodepng.h"
+#include "igcrecords.h"
 
 static double lon_rad(double lon)
 {
@@ -63,12 +64,6 @@ static void free_images(unsigned *images[24][2]) {
 	}
 }
 
-struct hms {
-	int hh;
-	int mm;
-	int ss;
-};
-
 static int delta_hms(struct hms a, struct hms b) {
 	int ds = a.ss - b.ss;
 	if (ds < 0) {
@@ -99,15 +94,16 @@ void doit(const char *dirname)
 
 
     char line[80];
-	struct hms lt = { 0, 0, 0 };
+	struct fix lf = { 0 };
     int lh = 0;
 	while (fgets(line, 80, stdin)) {
 		if (line[0] == 'B') {
 			unsigned int *p;
 			/*B0905444743497N01226360EA008410096300308971*/
-			struct hms bt;
+			struct fix bf;
 			int bg, bm, lg, lm, bh;
-			sscanf(line, "B%2d%2d%2d%2d%5d%*c%3d%5d%*2c%5d", &bt.hh, &bt.mm, &bt.ss, &bg, &bm, &lg, &lm, &bh);
+			sscanf(line, "B%*2c%*2c%*2c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg, &lm, &bh);
+			b_record_to_fix(line, &bf);
 			size_t alt;
 			if (bh >= 4000) {
 				alt = 1;
@@ -121,10 +117,12 @@ void doit(const char *dirname)
 				double du;
 				lat = bg + bm / 60000.0;
 				lon = lg + lm / 60000.0;
-				dh = (bh - lh) / delta_hms(bt, lt);
+				struct fix df;
+				fix_delta(&df, &bf, &lf);
+				dh = (bh - lh) / (df.time * 3600);
 				x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 				y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-				p = images[bt.hh][alt] + (y * width + x);
+				p = images[(int)bf.time][alt] + (y * width + x);
 				if (*p == 0xFFFF00FF) {
 					du = 4.0;
 				} else if (*p == 0xFFC837FF) {
@@ -162,7 +160,7 @@ void doit(const char *dirname)
 				printf("%f %f\n", dh, du);
 			}
 			lh = bh;
-			lt = bt;
+			lf = bf;
 		}
 	}
 

@@ -1,11 +1,14 @@
+%_utest: %.c
+	$(CC) -DCU $(CFLAGS) $(LDFLAGS) -o $@ $^
+	./$@
+
 CFLAGS = -ansi -g -O0 -Wdeprecated-declarations
 LDFLAGS = -lm
 
-remap: remap.o lodepng/lodepng.o
+remap: remap.o igcrecords.o lodepng/lodepng.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 color_updown: color_updown.o lodepng/lodepng.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
-clean:
-	rm *.o
+utest: $(addsuffix _utest, $(basename igcrecords.c))
