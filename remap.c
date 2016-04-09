@@ -64,21 +64,6 @@ static void free_images(unsigned *images[24][2]) {
 	}
 }
 
-static int delta_hms(struct hms a, struct hms b) {
-	int ds = a.ss - b.ss;
-	if (ds < 0) {
-		a.mm -= 1;
-		ds += 60;
-	}
-	int dm = a.mm - b.mm;
-	if (dm < 0) {
-		a.hh -= 1;
-		dm += 60;
-	}
-	int dh = a.hh - b.hh;
-	return dh * 3600 + dm * 60 + ds;
-}
-
 void doit(const char *dirname)
 {
 	int error;
@@ -95,31 +80,30 @@ void doit(const char *dirname)
 
     char line[80];
 	struct fix lf = { 0 };
-    int lh = 0;
 	while (fgets(line, 80, stdin)) {
 		if (line[0] == 'B') {
 			unsigned int *p;
 			/*B0905444743497N01226360EA008410096300308971*/
 			struct fix bf;
-			int bg, bm, lg, lm, bh;
-			sscanf(line, "B%*2c%*2c%*2c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg, &lm, &bh);
+			int bg, bm, lg, lm;
+			sscanf(line, "B%*2c%*2c%*2c%2d%5d%*c%3d%5d%*2c%*5d", &bg, &bm, &lg, &lm);
 			b_record_to_fix(line, &bf);
 			size_t alt;
-			if (bh >= 4000) {
+			if (bf.alt >= 4000) {
 				alt = 1;
-			} else if ( bh >= 3000 ) {
+			} else if ( bf.alt >= 3000 ) {
 				alt = 0;
 			} else {
 				alt = 2;
 			}
-			if (alt != 2 && lh != 0) {
+			if (alt != 2 && lf.alt != 0.0 ) {
 				double dh;
 				double du;
 				lat = bg + bm / 60000.0;
 				lon = lg + lm / 60000.0;
 				struct fix df;
 				fix_delta(&df, &bf, &lf);
-				dh = (bh - lh) / (df.time * 3600);
+				dh = df.alt / (df.time * 3600);
 				x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 				y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
 				p = images[(int)bf.time][alt] + (y * width + x);
@@ -154,12 +138,9 @@ void doit(const char *dirname)
 				} else {
 					du = 0.0;
 				}
-				if (dh > 25)
-					fputs(line, stderr);
 
 				printf("%f %f\n", dh, du);
 			}
-			lh = bh;
 			lf = bf;
 		}
 	}
