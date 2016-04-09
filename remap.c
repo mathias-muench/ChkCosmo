@@ -30,10 +30,10 @@ static double lat_rad(double lat)
 }
 
 
-static int load_files(unsigned *out[2], unsigned *w, unsigned *h, const char *dirname)
+static int load_images(unsigned *out[2], unsigned *w, unsigned *h, const char *dirname)
 {
 	int result = 0;
-	int altitudes[] = { 4000, 5000 };
+	int altitudes[] = { 3000, 5000 };
 
 	int i;
 	for (i = 0; i < 1; i++) {
@@ -55,13 +55,13 @@ static int load_files(unsigned *out[2], unsigned *w, unsigned *h, const char *di
 void doit(const char *dirname)
 {
 	int error;
-	unsigned *image[2];
+	unsigned *images[2];
 	unsigned width, height;
     double lon;
     double lat;
     int x, y;
 
-    error = load_files(image, &width, &height, dirname);
+    error = load_images(images, &width, &height, dirname);
     if (error)
       exit(1);
 
@@ -83,7 +83,7 @@ void doit(const char *dirname)
 		dh = ((bh - lh) + (lh - llh)) / 2;
 		x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-		p = image[0] + (y * width + x);
+		p = images[0] + (y * width + x);
 		if (*p == 0xFFFF00FF) {
 			du = 4.0;
 		} else if (*p == 0xFFC837FF) {
@@ -124,12 +124,12 @@ void doit(const char *dirname)
 /*B0905444743497N01226360EA008410096300308971*/
 
     error =
-	lodepng_encode32_file("xx.png", (unsigned char *) image[0], width,
+	lodepng_encode32_file("xx.png", (unsigned char *) images[0], width,
 				  height);
     if (error)
 	printf("error %u: %s\n", error, lodepng_error_text(error));
 
-    free(image[0]);
+    free(images[0]);
 }
 
 int main(int argc, char *argv[])
