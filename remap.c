@@ -10,8 +10,11 @@
 #define X_LON10 447
 #define Y_LAT45 574
 #define R 4126
-#define PI 3.1415
 #define Y_LAT0 (Y_LAT45 - R)
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,9 +24,51 @@
 #include "lodepng/lodepng.h"
 #include "igcrecords.h"
 
+static double zip(double q, double i, double j, double b)
+{
+    double zz = 1;
+    double z = zz;
+    double k = i;
+    while (k <= j) {
+	zz = zz * q * k / (k - b);
+	z = z + zz;
+	k = k + 2;
+    }
+    return z;
+}
+
+static double buzz(double t, int n)
+{
+    t = fabs(t);
+    double rt = t / sqrt(n);
+    double fk = atan(rt);
+    if (n == 1) {
+	return 1 - fk / (M_PI / 2);
+    }
+    double ek = sin(fk);
+    double dk = cos(fk);
+    if ((n % 2) == 1) {
+	return 1 - (fk + ek * dk * zip(dk * dk, 2, n - 3, -1)) / (M_PI / 2);
+    } else {
+	return 1 - ek * zip(dk * dk, 1, n - 3, -1);
+    }
+}
+
+static double pvalue(int n, double r)
+{
+    int df = n - 2;
+    double t_denom = sqrt((1 - (r * r)) / (n - 2));
+    double t = r / t_denom;
+    printf("%f\n", t);
+    printf("%d\n", df);
+    double p = buzz(t, df);
+
+    return p;
+}
+
 static double lon_rad(double lon)
 {
-    return (lon - 10) * PI / 180;
+    return (lon - 10) * M_PI / 180;
 }
 
 static double lat_rad(double lat)
@@ -173,7 +218,8 @@ void doit(const char *dirname, const char *date)
 			lf = bf;
 		}
 	}
-	printf("# %f %d\n", (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy)), nr);
+	double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
+	printf("# %f %d %f\n", r, nr, pvalue(nr, r));
 
 	free_images(images);
 }
