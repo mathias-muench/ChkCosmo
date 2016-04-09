@@ -45,44 +45,64 @@ double fix_distance(const struct fix *a, const struct fix *b) {
 	return d;
 }
 
+double fix_e_kin(const struct fix *a, const struct fix *b) {
+	double d = fix_distance(a, b);
+
+	struct fix f;
+	fix_delta(&f, a, b);
+
+	double v = d / (f.time * 3600);
+
+	return v * v / 2.0;
+}
+
 #ifdef CU
 #include "cu.h"
 
-int parse_time() {
+static int parse_time() {
 	struct fix fix_s, *fix = &fix_s;
 
 	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
 	return fix->time == 9 + 5 / 60.0 + 44 / 3600.0;
 }
 
-int parse_alt() {
+static int parse_alt() {
 	struct fix fix_s, *fix = &fix_s;
 
 	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
 	return fix->alt == 841;
 }
 
-int parse_lat() {
+static int parse_lat() {
 	struct fix fix_s, *fix = &fix_s;
 
 	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
 	return fix->lat == 47 + 43497 / 60000.0;
 }
 
-int parse_lon() {
+static int parse_lon() {
 	struct fix fix_s, *fix = &fix_s;
 
 	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
 	return fix->lon == 12 + 26360 / 60000.0;
 }
 
-int distance() {
+static int distance() {
 	struct fix fix1_s, *fix1 = &fix1_s;
 	struct fix fix2_s, *fix2 = &fix2_s;
 
 	b_record_to_fix("B0723224729253N01154547EA030000298700208", fix1);
 	b_record_to_fix("B0723244729236N01154545EA030050299800208", fix2);
-	return (int)fix_distance(fix1, fix2) == 31;
+	return fabs(fix_distance(fix1, fix2) - 31) < 1;
+}
+
+static int e_kin() {
+	struct fix fix1_s, *fix1 = &fix1_s;
+	struct fix fix2_s, *fix2 = &fix2_s;
+
+	b_record_to_fix("B0723224729253N01154547EA030000298700208", fix1);
+	b_record_to_fix("B0723244729236N01154545EA030050299800208", fix2);
+	return fabs(fix_e_kin(fix1, fix2) - (31.0 / 2.0) * (31.0 / 2.0) / 2.0) < 10;
 }
 
 int main(char **v, int c)
@@ -92,6 +112,7 @@ int main(char **v, int c)
 	cu_test(parse_lon);
 	cu_test(parse_lat);
 	cu_test(distance);
+	cu_test(e_kin);
 	return(!cu_result());
 }
 #endif
