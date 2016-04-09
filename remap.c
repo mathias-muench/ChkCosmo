@@ -143,7 +143,7 @@ void doit(const char *dirname)
 							du = 0.0;
 						}
 
-						printf("%f %f\n", dh, du);
+						printf("%6.2f %6.2f\n", dh, du);
 					}
 				}
 				le = be;
