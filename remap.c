@@ -30,39 +30,43 @@ static double lat_rad(double lat)
 }
 
 
-static int load_images(unsigned *out[2], unsigned *w, unsigned *h, const char *dirname)
+static int load_images(unsigned *out[24][2], unsigned *w, unsigned *h, const char *dirname)
 {
 	int result = 0;
 	int altitudes[] = { 3000, 5000 };
 
-	int i;
-	for (i = 0; i < 2; i++) {
-		/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
-		char filename[FILENAME_MAX];
-		sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%s.png", dirname, altitudes[i], "141104", "1200");
+	int i, j;
+	for (j = 0; j < 24; j++) {
+		for (i = 0; i < 2; i++) {
+			/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
+			char filename[FILENAME_MAX];
+			sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%02d00.png", dirname, altitudes[i], "141104", j);
 
-		unsigned error;
-		error = lodepng_decode32_file((unsigned char **) &out[i], w, h, filename);
-		if (error) {
-			fprintf(stderr, "error %u: %s\n", error, lodepng_error_text(error));
-			result = -1;
+			unsigned error;
+			error = lodepng_decode32_file((unsigned char **) &out[j][i], w, h, filename);
+			if (error) {
+				fprintf(stderr, "error %u: %s\n", error, lodepng_error_text(error));
+				result = -1;
+			}
 		}
 	}
 
 	return result;
 }
 
-static void free_images(unsigned *images[2]) {
-	int i;
-	for (i = 0; i < 2; i++) {
-		free(images[i]);
+static void free_images(unsigned *images[24][2]) {
+	int i, j;
+	for (j = 0; j < 24; j++) {
+		for (i = 0; i < 2; i++) {
+			free(images[j][i]);
+		}
 	}
 }
 
 void doit(const char *dirname)
 {
 	int error;
-	unsigned *images[2];
+	unsigned *images[24][2];
 	unsigned width, height;
     double lon;
     double lat;
@@ -82,6 +86,7 @@ void doit(const char *dirname)
 	double du;
 	if (line[0] == 'B') {
 		unsigned int *p;
+		/*B0905444743497N01226360EA008410096300308971*/
 		sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg, &lm, &bh);
 		size_t alt;
 		if (bh >= 4000) {
@@ -97,7 +102,7 @@ void doit(const char *dirname)
 		dh = ((bh - lh) + (lh - llh)) / 2;
 		x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-		p = images[alt] + (y * width + x);
+		p = images[12][alt] + (y * width + x);
 		if (*p == 0xFFFF00FF) {
 			du = 4.0;
 		} else if (*p == 0xFFC837FF) {
@@ -135,13 +140,6 @@ void doit(const char *dirname)
 		lh = bh;
 	}
     }
-/*B0905444743497N01226360EA008410096300308971*/
-
-    error =
-	lodepng_encode32_file("xx.png", (unsigned char *) images[0], width,
-				  height);
-    if (error)
-	printf("error %u: %s\n", error, lodepng_error_text(error));
 
 	free_images(images);
 }
