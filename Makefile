@@ -1,4 +1,4 @@
-CFLAGS = -ansi -g -Wdeprecated-declarations
+CFLAGS = -ansi -g -O0 -Wdeprecated-declarations
 LDFLAGS = -lm
 
 remap: remap.o lodepng/lodepng.o

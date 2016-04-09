@@ -36,7 +36,7 @@ static int load_images(unsigned *out[2], unsigned *w, unsigned *h, const char *d
 	int altitudes[] = { 3000, 5000 };
 
 	int i;
-	for (i = 0; i < 1; i++) {
+	for (i = 0; i < 2; i++) {
 		/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
 		char filename[FILENAME_MAX];
 		sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%s.png", dirname, altitudes[i], "141104", "1200");
@@ -50,6 +50,13 @@ static int load_images(unsigned *out[2], unsigned *w, unsigned *h, const char *d
 	}
 
 	return result;
+}
+
+void free_images(unsigned *images[2]) {
+	int i;
+	for (i = 0; i < 2; i++) {
+		free(images[i]);
+	}
 }
 
 void doit(const char *dirname)
@@ -129,7 +136,7 @@ void doit(const char *dirname)
     if (error)
 	printf("error %u: %s\n", error, lodepng_error_text(error));
 
-    free(images[0]);
+	free_images(images);
 }
 
 int main(int argc, char *argv[])
