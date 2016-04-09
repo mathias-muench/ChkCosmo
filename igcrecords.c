@@ -18,6 +18,8 @@ void b_record_to_fix(const char *record, struct fix *fix) {
 	struct hms bt_s, *bt = &bt_s;
 	int bg, bm, lg, lm;
 	sscanf(record, "B%2d%2d%2d%2d%5d%*c%3d%5d%*2c%5lf", &bt->hh, &bt->mm, &bt->ss, &bg, &bm, &lg, &lm, &fix->alt);
+	fix->lat = bg + bm / 60000.0;
+	fix->lon = lg + lm / 60000.0;
 	fix->time = hms_to_double(bt);
 }
 
@@ -43,10 +45,26 @@ int parse_alt() {
 	return fix->alt == 841;
 }
 
+int parse_lat() {
+	struct fix fix_s, *fix = &fix_s;
+
+	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
+	return fix->lat == 47 + 43497 / 60000.0;
+}
+
+int parse_lon() {
+	struct fix fix_s, *fix = &fix_s;
+
+	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
+	return fix->lon == 12 + 26360 / 60000.0;
+}
+
 int main(char **v, int c)
 {
 	cu_test(parse_time);
 	cu_test(parse_alt);
+	cu_test(parse_lon);
+	cu_test(parse_lat);
 	return(!cu_result());
 }
 #endif
