@@ -30,13 +30,16 @@ static double lat_rad(double lat)
 }
 
 
-static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *filename)
+static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *dirname)
 {
 	int result = 0;
 
+	/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
+	char filename[FILENAME_MAX];
+    sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%s.png", dirname, 3000, "141104", "1200");
+
 	unsigned error;
-    error = lodepng_decode32_file((unsigned char **) out, w, h,
-				  filename);
+    error = lodepng_decode32_file((unsigned char **) out, w, h, filename);
 	if (error) {
 		printf("error %u: %s\n", error, lodepng_error_text(error));
 		result = -1;
@@ -45,7 +48,7 @@ static int load_files(unsigned **out, unsigned *w, unsigned *h, const char *file
 	return result;
 }
 
-void doit(const char *filename)
+void doit(const char *dirname)
 {
 	int error;
 	unsigned *image;
@@ -54,8 +57,7 @@ void doit(const char *filename)
     double lat;
     int x, y;
 
-    error =
-       load_files(&image, &width, &height, filename);
+    error = load_files(&image, &width, &height, dirname);
     if (error)
       exit(1);
 
@@ -63,7 +65,7 @@ void doit(const char *filename)
     char line[80];
     int lh = 0;
     int llh = 0;
-    while (gets(line)) {
+    while (fgets(line, 80, stdin)) {
 	int bg, bm, lg, lm, bh;
 	double dh;
 	double du;
@@ -128,9 +130,9 @@ void doit(const char *filename)
 
 int main(int argc, char *argv[])
 {
-    const char *filename = argc > 1 ? argv[1] : "test.png";
+    const char *dirname = argc > 1 ? argv[1] : "test.png";
 
-    doit(filename);
+    doit(dirname);
 
     return 0;
 }
