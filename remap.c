@@ -52,7 +52,7 @@ static int load_images(unsigned *out[2], unsigned *w, unsigned *h, const char *d
 	return result;
 }
 
-void free_images(unsigned *images[2]) {
+static void free_images(unsigned *images[2]) {
 	int i;
 	for (i = 0; i < 2; i++) {
 		free(images[i]);
@@ -82,15 +82,22 @@ void doit(const char *dirname)
 	double du;
 	if (line[0] == 'B') {
 		unsigned int *p;
-		sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg,
-		   &lm, &bh);
-		if (bh > 3000 && lh != 0 && llh != 0) {
+		sscanf(line, "%*7c%2d%5d%*c%3d%5d%*2c%5d", &bg, &bm, &lg, &lm, &bh);
+		size_t alt;
+		if (bh >= 4000) {
+			alt = 1;
+		} else if ( bh >= 3000 ) {
+			alt = 0;
+		} else {
+			alt = 2;
+		}
+		if (alt != 2 && lh != 0 && llh != 0) {
 		lat = bg + bm / 60000.0;
 		lon = lg + lm / 60000.0;
 		dh = ((bh - lh) + (lh - llh)) / 2;
 		x = lat_rad(lat) * sin(lon_rad(lon)) + X_LON10;
 		y = lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
-		p = images[0] + (y * width + x);
+		p = images[alt] + (y * width + x);
 		if (*p == 0xFFFF00FF) {
 			du = 4.0;
 		} else if (*p == 0xFFC837FF) {
