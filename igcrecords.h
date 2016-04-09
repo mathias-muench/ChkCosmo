@@ -10,5 +10,7 @@ struct fix {
 
 void b_record_to_fix(const char *record, struct fix *fix);
 void fix_delta(struct fix *r, const struct fix *a, const struct fix *b);
+double fix_distance(const struct fix *a, const struct fix *b);
+double fix_e_kin(const struct fix *a, const struct fix *b);
 
 #endif
