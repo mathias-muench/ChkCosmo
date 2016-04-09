@@ -33,16 +33,20 @@ static double lat_rad(double lat)
 static int load_files(unsigned *out[2], unsigned *w, unsigned *h, const char *dirname)
 {
 	int result = 0;
+	int altitudes[] = { 4000, 5000 };
 
-	/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
-	char filename[FILENAME_MAX];
-    sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%s.png", dirname, 3000, "141104", "1200");
+	int i;
+	for (i = 0; i < 1; i++) {
+		/* nb_cosde_ome_alpen_lv_003000_vt_141104_1200.png  */
+		char filename[FILENAME_MAX];
+		sprintf(filename, "%s/nb_cosde_ome_alpen_lv_%06d_vt_%s_%s.png", dirname, altitudes[i], "141104", "1200");
 
-	unsigned error;
-    error = lodepng_decode32_file((unsigned char **) &out[0], w, h, filename);
-	if (error) {
-		printf("error %u: %s\n", error, lodepng_error_text(error));
-		result = -1;
+		unsigned error;
+		error = lodepng_decode32_file((unsigned char **) &out[i], w, h, filename);
+		if (error) {
+			fprintf(stderr, "error %u: %s\n", error, lodepng_error_text(error));
+			result = -1;
+		}
 	}
 
 	return result;
