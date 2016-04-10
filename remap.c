@@ -26,54 +26,55 @@
 
 static double zip(double q, double i, double j, double b)
 {
-    double zz = 1;
-    double z = zz;
-    double k = i;
-    while (k <= j) {
-	zz = zz * q * k / (k - b);
-	z = z + zz;
-	k = k + 2;
-    }
-    return z;
+	double zz = 1;
+	double z = zz;
+	double k = i;
+	while (k <= j) {
+		zz = zz * q * k / (k - b);
+		z = z + zz;
+		k = k + 2;
+	}
+	return z;
 }
 
 static double buzz(double t, int n)
 {
-    t = fabs(t);
-    double rt = t / sqrt(n);
-    double fk = atan(rt);
-    if (n == 1) {
-	return 1 - fk / (M_PI / 2);
-    }
-    double ek = sin(fk);
-    double dk = cos(fk);
-    if ((n % 2) == 1) {
-	return 1 - (fk + ek * dk * zip(dk * dk, 2, n - 3, -1)) / (M_PI / 2);
-    } else {
-	return 1 - ek * zip(dk * dk, 1, n - 3, -1);
-    }
+	t = fabs(t);
+	double rt = t / sqrt(n);
+	double fk = atan(rt);
+	if (n == 1) {
+		return 1 - fk / (M_PI / 2);
+	}
+	double ek = sin(fk);
+	double dk = cos(fk);
+	if ((n % 2) == 1) {
+		return 1 - (fk + ek * dk * zip(dk * dk, 2, n - 3, -1)) / (M_PI / 2);
+	} else {
+		return 1 - ek * zip(dk * dk, 1, n - 3, -1);
+	}
 }
 
+/* see http://vassarstats.net/textbook/ch4apx.html and http://vassarstats.net/textbook/tcall.js */
 static double pvalue(int n, double r)
 {
-    int df = n - 2;
-    double t_denom = sqrt((1 - (r * r)) / (n - 2));
-    double t = r / t_denom;
-    printf("%f\n", t);
-    printf("%d\n", df);
-    double p = buzz(t, df);
+	int df = n - 2;
+	double t_denom = sqrt((1 - (r * r)) / (n - 2));
+	double t = r / t_denom;
+	printf("%f\n", t);
+	printf("%d\n", df);
+	double p = buzz(t, df);
 
-    return p;
+	return p;
 }
 
 static double lon_rad(double lon)
 {
-    return (lon - 10) * M_PI / 180;
+	return (lon - 10) * M_PI / 180;
 }
 
 static double lat_rad(double lat)
 {
-    return ((R / 45.0) * ((94.5 - lat * 1.1)));
+	return ((R / 45.0) * ((94.5 - lat * 1.1)));
 }
 
 
@@ -110,7 +111,8 @@ static int load_images(unsigned *out[24][2], unsigned *w, unsigned *h, const cha
 	return result;
 }
 
-static void free_images(unsigned *images[24][2]) {
+static void free_images(unsigned *images[24][2])
+{
 	int i, j;
 	for (j = 0; j < 24; j++) {
 		for (i = 0; i < 2; i++) {
@@ -125,12 +127,12 @@ void doit(const char *dirname, const char *date)
 	unsigned *images[24][2];
 	unsigned width, height;
 
-    error = load_images(images, &width, &height, dirname, date);
-    if (error)
-      exit(1);
+	error = load_images(images, &width, &height, dirname, date);
+	if (error)
+		exit(1);
 
 
-    char line[80];
+	char line[80];
 	struct fix lf = { 0 };
 	double le = 0.0;
 	double sxy = 0;
@@ -149,7 +151,7 @@ void doit(const char *dirname, const char *date)
 					size_t alt;
 					if (bf.alt >= 4000) {
 						alt = 1;
-					} else if ( bf.alt >= 3000 ) {
+					} else if (bf.alt >= 3000) {
 						alt = 0;
 					} else {
 						alt = 2;
@@ -171,7 +173,7 @@ void doit(const char *dirname, const char *date)
 						y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
 
 						unsigned int *p;
-						p = images[(int)bf.time][alt] + (y * width + x);
+						p = images[(int) bf.time][alt] + (y * width + x);
 						if (*p == 0xFFFF00FF) {
 							du = 4.0;
 						} else if (*p == 0xFFC837FF) {
@@ -228,9 +230,9 @@ int main(int argc, char *argv[])
 {
 	assert(argc == 3);
 
-    doit(argv[1], argv[2]);
+	doit(argv[1], argv[2]);
 
-    return 0;
+	return 0;
 }
 
 /* vi:ai:sw=4:ts=4:noet
