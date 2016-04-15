@@ -137,6 +137,15 @@ double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
 	return dh / interval;
 }
 
+double mean_fc(kvec_t(double) *forecasts, size_t pos, size_t interval) {
+	int i;
+	double du = 0;
+	for (i = pos; i > pos - interval; i--) {
+		du += kv_A(*forecasts, i);
+	}
+	return du / interval;
+}
+
 double forecast(unsigned int *p) {
 	double du;
 
@@ -224,7 +233,7 @@ void doit(const char *dirname, const char *date)
 		if (bf.alt >= 3000) {
 
 			double dh = mean(&b_fixes, i, MEAN_INTERVAL);
-			double du = kv_A(forecasts, i);
+			double du = mean_fc(&forecasts, i, MEAN_INTERVAL);
 
 			printf("%6.2f %6.2f\n", dh, du);
 			sxy += dh * du;
