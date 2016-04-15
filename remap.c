@@ -122,12 +122,17 @@ static void free_images(unsigned *images[24][2])
 	}
 }
 
-double mean(kvec_t(struct fix) *b_fixes, size_t i, size_t interval) {
-	struct fix lf = kv_A(*b_fixes, i - 1);
-	struct fix bf = kv_A(*b_fixes, i);
-	struct fix df;
-	fix_delta(&df, &bf, &lf);
-	return df.alt / (df.time * 3600);
+double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
+	int i;
+	double dh = 0;
+	for (i = pos; i > pos - interval; i--) {
+		struct fix lf = kv_A(*b_fixes, i - 1);
+		struct fix bf = kv_A(*b_fixes, i);
+		struct fix df;
+		fix_delta(&df, &bf, &lf);
+		dh += df.alt / (df.time * 3600);
+	}
+	return dh / interval;
 }
 	
 void doit(const char *dirname, const char *date)
