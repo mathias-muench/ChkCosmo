@@ -25,7 +25,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define MEAN_INTERVAL 20
+#define MEAN_INTERVAL 30
 
 static double zip(double q, double i, double j, double b)
 {
@@ -63,8 +63,6 @@ static double pvalue(int n, double r)
 	int df = n - 2;
 	double t_denom = sqrt((1 - (r * r)) / (n - 2));
 	double t = r / t_denom;
-	printf("%f\n", t);
-	printf("%d\n", df);
 	double p = buzz(t, df);
 
 	return p;
@@ -228,13 +226,25 @@ void doit(const char *dirname, const char *date)
 	assert(kv_size(b_fixes) > MEAN_INTERVAL);
 
 	int i;
+	int startPos = 0;
+	int endPos = 0;
 	for (i = 1; i < kv_size(b_fixes); i++) {
 		struct fix bf = kv_A(b_fixes, i);
-		if (bf.alt >= 3000) {
 
-			double dh = mean(&b_fixes, i, MEAN_INTERVAL);
-			double du = mean_fc(&forecasts, i, MEAN_INTERVAL);
+		double dh = mean(&b_fixes, i, MEAN_INTERVAL);
+		if (dh > 0.5 && startPos == 0 && endPos == 0) {
+			startPos = i - MEAN_INTERVAL;
+		}
+		if (dh < 0.0 && startPos != 0 && endPos == 0) {
+			endPos = i - MEAN_INTERVAL;
+		}
 
+		if (bf.alt >= 3000 && startPos && endPos) {
+			double dh = mean(&b_fixes, endPos, endPos - startPos);
+			double du = mean_fc(&forecasts, endPos, endPos - startPos);
+			startPos = endPos = 0;
+
+			printf("%f\n", bf.time);
 			printf("%6.2f %6.2f\n", dh, du);
 			sxy += dh * du;
 			sx += dh;
