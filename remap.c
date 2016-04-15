@@ -1,3 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+
+#include "lodepng/lodepng.h"
+#include "kvec.h"
+#include "igcrecords.h"
+
 /*
  * 4/50 = 65/51
  * 10/50 = 447/70
@@ -16,14 +25,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
-
-#include "lodepng/lodepng.h"
-#include "kvec.h"
-#include "igcrecords.h"
+#define MEAN_INTERVAL 20
 
 static double zip(double q, double i, double j, double b)
 {
@@ -163,7 +165,8 @@ void doit(const char *dirname, const char *date)
 			kv_push(struct fix, b_fixes, bf);
 		}
 	}
-	assert(kv_size(b_fixes) > 1);
+	
+	assert(kv_size(b_fixes) > MEAN_INTERVAL);
 
     int i;
 	for (i = 1; i < kv_size(b_fixes); i++) {
@@ -182,7 +185,7 @@ void doit(const char *dirname, const char *date)
 			double de;
 			double du;
 
-			dh = mean(&b_fixes, i, 1);
+			dh = mean(&b_fixes, i, MEAN_INTERVAL);
 
 			int x, y;
 			x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
