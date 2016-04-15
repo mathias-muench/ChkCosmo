@@ -143,26 +143,26 @@ void doit(const char *dirname, const char *date)
 	double syy = 0;
 	unsigned nr = 0;
 
-	kvec_t(struct fix *) b_fixes;
+	kvec_t(struct fix) b_fixes;
 	kv_init(b_fixes);
 	while (fgets(line, 80, stdin)) {
 		if (line[0] == 'B') {
-			struct fix *bf = malloc(sizeof (struct fix));
-			b_record_to_fix(line, bf);
-			kv_push(struct fix *, b_fixes, bf);
+			struct fix bf;
+			b_record_to_fix(line, &bf);
+			kv_push(struct fix, b_fixes, bf);
 		}
 	}
 
     int i;
 	for (i = 0; i < kv_size(b_fixes); i++) {
-		struct fix *bf = kv_A(b_fixes, i);
+		struct fix bf = kv_A(b_fixes, i);
 		if (lf.alt != 0.0) {
-			double be = fix_e_kin(bf, &lf);
+			double be = fix_e_kin(&bf, &lf);
 			if (le != 0.0) {
 				size_t alt;
-				if (bf->alt >= 4000) {
+				if (bf.alt >= 4000) {
 					alt = 1;
-				} else if (bf->alt >= 3000) {
+				} else if (bf.alt >= 3000) {
 					alt = 0;
 				} else {
 					alt = 2;
@@ -172,7 +172,7 @@ void doit(const char *dirname, const char *date)
 					double de;
 					double du;
 					struct fix df;
-					fix_delta(&df, bf, &lf);
+					fix_delta(&df, &bf, &lf);
 					dh = df.alt / (df.time * 3600);
 					de = (be - le) / 9.81;
 #if 0
@@ -180,11 +180,11 @@ void doit(const char *dirname, const char *date)
 #endif
 
 					int x, y;
-					x = lat_rad(bf->lat) * sin(lon_rad(bf->lon)) + X_LON10;
-					y = lat_rad(bf->lat) * cos(lon_rad(bf->lon)) + Y_LAT0;
+					x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
+					y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
 
 					unsigned int *p;
-					p = images[(int) bf->time][alt] + (y * width + x);
+					p = images[(int) bf.time][alt] + (y * width + x);
 					if (*p == 0xFFFF00FF) {
 						du = 4.0;
 					} else if (*p == 0xFFC837FF) {
@@ -228,7 +228,7 @@ void doit(const char *dirname, const char *date)
 			}
 			le = be;
 		}
-		lf = *bf;
+		lf = bf;
 	}
 	double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
 	printf("# %f %d %f\n", r, nr, pvalue(nr, r));
