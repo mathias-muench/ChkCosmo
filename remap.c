@@ -136,7 +136,43 @@ double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
 	}
 	return dh / interval;
 }
-	
+
+double forecast(unsigned int *p) {
+	double du;
+
+	if (*p == 0xFFFF00FF) {
+		du = 4.0;
+	} else if (*p == 0xFFC837FF) {
+		du = 2.5;
+	} else if (*p == 0xFF6F42FF) {
+		du = 1.5;
+	} else if (*p == 0xFF4040FF) {
+		du = 1.0;
+	} else if (*p == 0xFF5277FF) {
+		du = 0.75;
+	} else if (*p == 0xFF6BC1FF) {
+		du = 0.5;
+	} else if (*p == 0xFF80FFFF) {
+		du = 0.25;
+	} else if (*p == 0xFFF3FFC1) {
+		du = -0.25;
+	} else if (*p == 0xFFF8DC75) {
+		du = -0.5;
+	} else if (*p == 0xFFFBC543) {
+		du = -0.75;
+	} else if (*p == 0xFFFEA803) {
+		du = -1.0;
+	} else if (*p == 0xFFFF9B2B) {
+		du = -1.5;
+	} else if (*p == 0xFFFF8C59) {
+		du = -2.5;
+	} else if (*p == 0xFFFF8080) {
+		du = -4.0;
+	} else {
+		du = 0.0;
+	}
+}
+
 void doit(const char *dirname, const char *date)
 {
 	int error;
@@ -158,72 +194,37 @@ void doit(const char *dirname, const char *date)
 
 	kvec_t(struct fix) b_fixes;
 	kv_init(b_fixes);
+	kvec_t(double) forecasts;
+	kv_init(forecasts);
 	while (fgets(line, 80, stdin)) {
 		if (line[0] == 'B') {
 			struct fix bf;
 			b_record_to_fix(line, &bf);
 			kv_push(struct fix, b_fixes, bf);
+
+			size_t alt;
+			if (bf.alt >= 4000) {
+				alt = 1;
+			} else {
+				alt = 0;
+			}
+			int x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
+			int y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
+			unsigned int *p = images[(int) bf.time][alt] + (y * width + x);
+			double du = forecast(p);
+			kv_push(double, forecasts, du);
 		}
 	}
-	
+
 	assert(kv_size(b_fixes) > MEAN_INTERVAL);
 
-    int i;
+	int i;
 	for (i = 1; i < kv_size(b_fixes); i++) {
 		struct fix bf = kv_A(b_fixes, i);
-		struct fix lf = kv_A(b_fixes, i - 1);
-		size_t alt;
-		if (bf.alt >= 4000) {
-			alt = 1;
-		} else if (bf.alt >= 3000) {
-			alt = 0;
-		} else {
-			alt = 2;
-		}
-		if (alt != 2) {
-			double dh;
-			double de;
-			double du;
+		if (bf.alt >= 3000) {
 
-			dh = mean(&b_fixes, i, MEAN_INTERVAL);
-
-			int x, y;
-			x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
-			y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
-
-			unsigned int *p;
-			p = images[(int) bf.time][alt] + (y * width + x);
-			if (*p == 0xFFFF00FF) {
-				du = 4.0;
-			} else if (*p == 0xFFC837FF) {
-				du = 2.5;
-			} else if (*p == 0xFF6F42FF) {
-				du = 1.5;
-			} else if (*p == 0xFF4040FF) {
-				du = 1.0;
-			} else if (*p == 0xFF5277FF) {
-				du = 0.75;
-			} else if (*p == 0xFF6BC1FF) {
-				du = 0.5;
-			} else if (*p == 0xFF80FFFF) {
-				du = 0.25;
-			} else if (*p == 0xFFF3FFC1) {
-				du = -0.25;
-			} else if (*p == 0xFFF8DC75) {
-				du = -0.5;
-			} else if (*p == 0xFFFBC543) {
-				du = -0.75;
-			} else if (*p == 0xFFFEA803) {
-				du = -1.0;
-			} else if (*p == 0xFFFF9B2B) {
-				du = -1.5;
-			} else if (*p == 0xFFFF8C59) {
-				du = -2.5;
-			} else if (*p == 0xFFFF8080) {
-				du = -4.0;
-			} else {
-				du = 0.0;
-			}
+			double dh = mean(&b_fixes, i, MEAN_INTERVAL);
+			double du = kv_A(forecasts, i);
 
 			printf("%6.2f %6.2f\n", dh, du);
 			sxy += dh * du;
