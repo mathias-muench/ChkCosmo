@@ -260,6 +260,8 @@ void doit(const char *dirname, const char *date)
 	double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
 	printf("# %f %d %f\n", r, nr, pvalue(nr, r));
 
+	kv_destroy(b_fixes);
+	kv_destroy(forecasts);
 	free_images(images);
 }
 
