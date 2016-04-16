@@ -6,25 +6,16 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-struct hms {
-	int hh;
-	int mm;
-	int ss;
-};
 
 /*B0905444743497N01226360EA008410096300308971*/
 
-static double hms_to_double(const struct hms *hms) {
-	return hms->hh + hms->mm / 60.0 + hms->ss / 3600.0;
-}
-
 void b_record_to_fix(const char *record, struct fix *fix) {
-	struct hms bt_s, *bt = &bt_s;
+	int hh, mm, ss;
 	int bg, bm, lg, lm;
-	sscanf(record, "B%2d%2d%2d%2d%5d%*c%3d%5d%*2c%5lf", &bt->hh, &bt->mm, &bt->ss, &bg, &bm, &lg, &lm, &fix->alt);
+	sscanf(record, "B%2d%2d%2d%2d%5d%*c%3d%5d%*2c%5lf", &hh, &mm, &ss, &bg, &bm, &lg, &lm, &fix->alt);
 	fix->lat = bg + bm / 60000.0;
 	fix->lon = lg + lm / 60000.0;
-	fix->time = hms_to_double(bt);
+	fix->time =  hh * 3600 + mm * 60.0 + ss;
 }
 
 void fix_delta(struct fix *r, const struct fix *a, const struct fix *b) {
@@ -51,9 +42,21 @@ double fix_e_kin(const struct fix *a, const struct fix *b) {
 	struct fix f;
 	fix_delta(&f, a, b);
 
-	double v = d / (f.time * 3600);
+	double v = d / (f.time);
 
 	return v * v / 2.0;
+}
+
+int fix_hh(const struct fix *this) {
+	return this->time / 3600;
+}
+
+int fix_mm(const struct fix *this) {
+	return this->time / 60 - fix_hh(this) * 60;
+}
+
+int fix_ss(const struct fix *this) {
+	return this->time - fix_mm(this) * 60 - fix_hh(this) * 3600;
 }
 
 #ifdef CU
@@ -63,7 +66,7 @@ static int parse_time() {
 	struct fix fix_s, *fix = &fix_s;
 
 	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
-	return fix->time == 9 + 5 / 60.0 + 44 / 3600.0;
+	return fix->time == 9 * 3600 + 5 * 60.0 + 44;
 }
 
 static int parse_alt() {
@@ -105,6 +108,13 @@ static int e_kin() {
 	return fabs(fix_e_kin(fix1, fix2) - (31.0 / 2.0) * (31.0 / 2.0) / 2.0) < 10;
 }
 
+static int hhmmss() {
+	struct fix fix_s, *fix = &fix_s;
+
+	b_record_to_fix("B0905444743497N01226360EA008410096300308971", fix);
+	return fix_hh(fix) == 9 && fix_mm(fix) == 5 && fix_ss(fix) == 44;
+}
+
 int main(char **v, int c)
 {
 	cu_test(parse_time);
@@ -113,6 +123,7 @@ int main(char **v, int c)
 	cu_test(parse_lat);
 	cu_test(distance);
 	cu_test(e_kin);
+	cu_test(hhmmss);
 	return(!cu_result());
 }
 #endif

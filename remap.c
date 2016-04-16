@@ -130,7 +130,7 @@ double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
 		struct fix bf = kv_A(*b_fixes, i);
 		struct fix df;
 		fix_delta(&df, &bf, &lf);
-		dh += df.alt / (df.time * 3600);
+		dh += df.alt / df.time;
 	}
 	return dh / interval;
 }
@@ -217,7 +217,7 @@ void doit(const char *dirname, const char *date)
 			}
 			int x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
 			int y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
-			unsigned int *p = images[(int) bf.time][alt] + (y * width + x);
+			unsigned int *p = images[fix_hh(bf][alt] + (y * width + x);
 			double du = forecast(p);
 			kv_push(double, forecasts, du);
 		}
@@ -244,7 +244,7 @@ void doit(const char *dirname, const char *date)
 			double du = mean_fc(&forecasts, endPos, endPos - startPos);
 			startPos = endPos = 0;
 
-			printf("%f\n", bf.time);
+			printf("%f\n", bf.time / 3600);
 			printf("%6.2f %6.2f\n", dh, du);
 			sxy += dh * du;
 			sx += dh;
