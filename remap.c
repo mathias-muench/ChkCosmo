@@ -25,7 +25,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define MEAN_INTERVAL 60
+#define MEAN_INTERVAL 120
 
 static double zip(double q, double i, double j, double b)
 {
@@ -120,6 +120,17 @@ static void free_images(unsigned *images[24][2])
 			free(images[j][i]);
 		}
 	}
+}
+
+size_t time_interval(kvec_t(struct fix) *b_fixes, size_t pos, unsigned dt) {
+	int i;
+	struct fix df = { 0 };
+	for (i = pos; df.time < dt; i--) {
+		struct fix ff = kv_A(*b_fixes, pos);
+		struct fix bf = kv_A(*b_fixes, i);
+		fix_delta(&df, &ff, &bf);
+	}
+	return pos - i;
 }
 
 double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
@@ -229,12 +240,13 @@ void doit(const char *dirname, const char *date)
 	int startPos = 0;
 	int endPos = 0;
 	for (i = 1; i < kv_size(b_fixes); i++) {
-		double dh = mean(&b_fixes, i, MEAN_INTERVAL);
+		size_t interval = time_interval(&b_fixes, i, MEAN_INTERVAL);
+		double dh = mean(&b_fixes, i, interval);
 		if (dh > 0.5 && startPos == 0 && endPos == 0) {
-			startPos = i - MEAN_INTERVAL;
+			startPos = i - interval;
 		}
 		if (dh < 0.0 && startPos != 0 && endPos == 0) {
-			endPos = i - MEAN_INTERVAL;
+			endPos = i - interval;
 		}
 
 		if (startPos && endPos) {
