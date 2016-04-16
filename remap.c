@@ -25,7 +25,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define MEAN_INTERVAL 30
+#define MEAN_INTERVAL 60
 
 static double zip(double q, double i, double j, double b)
 {
@@ -217,7 +217,7 @@ void doit(const char *dirname, const char *date)
 			}
 			int x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
 			int y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
-			unsigned int *p = images[fix_hh(bf][alt] + (y * width + x);
+			unsigned int *p = images[fix_hh(&bf)][alt] + (y * width + x);
 			double du = forecast(p);
 			kv_push(double, forecasts, du);
 		}
@@ -229,8 +229,6 @@ void doit(const char *dirname, const char *date)
 	int startPos = 0;
 	int endPos = 0;
 	for (i = 1; i < kv_size(b_fixes); i++) {
-		struct fix bf = kv_A(b_fixes, i);
-
 		double dh = mean(&b_fixes, i, MEAN_INTERVAL);
 		if (dh > 0.5 && startPos == 0 && endPos == 0) {
 			startPos = i - MEAN_INTERVAL;
@@ -239,19 +237,24 @@ void doit(const char *dirname, const char *date)
 			endPos = i - MEAN_INTERVAL;
 		}
 
-		if (bf.alt >= 3000 && startPos && endPos) {
-			double dh = mean(&b_fixes, endPos, endPos - startPos);
-			double du = mean_fc(&forecasts, endPos, endPos - startPos);
-			startPos = endPos = 0;
+		if (startPos && endPos) {
+			struct fix bs = kv_A(b_fixes, startPos);
+			struct fix be = kv_A(b_fixes, endPos);
+			if (be.alt >= 3000) {
+				double dh = mean(&b_fixes, endPos, endPos - startPos);
+				double du = mean_fc(&forecasts, endPos, endPos - startPos);
 
-			printf("%f\n", bf.time / 3600);
-			printf("%6.2f %6.2f\n", dh, du);
-			sxy += dh * du;
-			sx += dh;
-			sy += du;
-			sxx += dh * dh;
-			syy += du * du;
-			nr++;
+				printf("%6.2f\t%6.2f\t# %02d%02d%02d %02d%02d%02d\n", dh, du, fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
+
+
+				sxy += dh * du;
+				sx += dh;
+				sy += du;
+				sxx += dh * dh;
+				syy += du * du;
+				nr++;
+			}
+			startPos = endPos = 0;
 		}
 	}
 	double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
