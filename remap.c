@@ -8,8 +8,9 @@
 #endif
 
 #include "lodepng/lodepng.h"
-#include "kvec.h"
+#include "klib/kvec.h"
 #include "igcrecords.h"
+#include "transform.h"
 
 #define MEAN_INTERVAL 120
 

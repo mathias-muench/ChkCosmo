@@ -11,3 +11,5 @@ remap: remap.o transform.o igcrecords.o lodepng.o
 utest: $(addsuffix _utest, $(basename transform.c)) $(addsuffix _utest, $(basename igcrecords.c))
 
 lodepng.o: lodepng/lodepng.c
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
