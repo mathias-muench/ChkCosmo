@@ -90,42 +90,6 @@ double mean_fc(double_kvec *forecasts, size_t pos, size_t interval) {
 	return du / interval;
 }
 
-double forecast(unsigned int *p) {
-	double du;
-
-	if (*p == 0xFFFF00FF) {
-		du = 4.0;
-	} else if (*p == 0xFFC837FF) {
-		du = 2.5;
-	} else if (*p == 0xFF6F42FF) {
-		du = 1.5;
-	} else if (*p == 0xFF4040FF) {
-		du = 1.0;
-	} else if (*p == 0xFF5277FF) {
-		du = 0.75;
-	} else if (*p == 0xFF6BC1FF) {
-		du = 0.5;
-	} else if (*p == 0xFF80FFFF) {
-		du = 0.25;
-	} else if (*p == 0xFFF3FFC1) {
-		du = -0.25;
-	} else if (*p == 0xFFF8DC75) {
-		du = -0.5;
-	} else if (*p == 0xFFFBC543) {
-		du = -0.75;
-	} else if (*p == 0xFFFEA803) {
-		du = -1.0;
-	} else if (*p == 0xFFFF9B2B) {
-		du = -1.5;
-	} else if (*p == 0xFFFF8C59) {
-		du = -2.5;
-	} else if (*p == 0xFFFF8080) {
-		du = -4.0;
-	} else {
-		du = 0.0;
-	}
-}
-
 void doit(const char *dirname, const char *date)
 {
 	int error;
@@ -164,7 +128,7 @@ void doit(const char *dirname, const char *date)
 			int x = fix2x(bf.lat, bf.lon);
 			int y = fix2y(bf.lat, bf.lon);
 			unsigned int *p = images[fix_hh(&bf)][alt] + (y * width + x);
-			double du = forecast(p);
+			double du = forecast(*p);
 			kv_push(double, forecasts, du);
 		}
 	}

@@ -42,6 +42,42 @@ int fix2y(double lat, double lon)
 	return lat_rad(lat) * cos(lon_rad(lon)) + Y_LAT0;
 }
 
+double forecast(unsigned int rgba) {
+	double du;
+
+	if (rgba == 0xFFFF00FF) {
+		du = 4.0;
+	} else if (rgba == 0xFFC837FF) {
+		du = 2.5;
+	} else if (rgba == 0xFF6F42FF) {
+		du = 1.5;
+	} else if (rgba == 0xFF4040FF) {
+		du = 1.0;
+	} else if (rgba == 0xFF5277FF) {
+		du = 0.75;
+	} else if (rgba == 0xFF6BC1FF) {
+		du = 0.5;
+	} else if (rgba == 0xFF80FFFF) {
+		du = 0.25;
+	} else if (rgba == 0xFFF3FFC1) {
+		du = -0.25;
+	} else if (rgba == 0xFFF8DC75) {
+		du = -0.5;
+	} else if (rgba == 0xFFFBC543) {
+		du = -0.75;
+	} else if (rgba == 0xFFFEA803) {
+		du = -1.0;
+	} else if (rgba == 0xFFFF9B2B) {
+		du = -1.5;
+	} else if (rgba == 0xFFFF8C59) {
+		du = -2.5;
+	} else if (rgba == 0xFFFF8080) {
+		du = -4.0;
+	} else {
+		du = 0.0;
+	}
+}
+
 #ifdef CU
 #include "cu.h"
 #include "assert.h"
