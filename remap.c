@@ -3,27 +3,13 @@
 #include <math.h>
 #include <assert.h>
 
-#include "lodepng/lodepng.h"
-#include "kvec.h"
-#include "igcrecords.h"
-
-/*
- * 4/50 = 65/51
- * 10/50 = 447/70
- * 16/50 = 829/51
- * 4/45 = 12/551
- * 10/45 = 447/574
- * 16/45 = 882/551
-*/
-
-#define X_LON10 447
-#define Y_LAT45 574
-#define R 4126
-#define Y_LAT0 (Y_LAT45 - R)
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+#include "lodepng/lodepng.h"
+#include "kvec.h"
+#include "igcrecords.h"
 
 #define MEAN_INTERVAL 120
 
@@ -67,17 +53,6 @@ static double pvalue(int n, double r)
 
 	return p;
 }
-
-static double lon_rad(double lon)
-{
-	return (lon - 10) * M_PI / 180;
-}
-
-static double lat_rad(double lat)
-{
-	return ((R / 45.0) * ((94.5 - lat * 1.1)));
-}
-
 
 static int load_images(unsigned *out[24][2], unsigned *w, unsigned *h, const char *dirname, const char *date)
 {
@@ -226,8 +201,8 @@ void doit(const char *dirname, const char *date)
 			} else {
 				alt = 0;
 			}
-			int x = lat_rad(bf.lat) * sin(lon_rad(bf.lon)) + X_LON10;
-			int y = lat_rad(bf.lat) * cos(lon_rad(bf.lon)) + Y_LAT0;
+			int x = fix2x(bf.lat, bf.lon);
+			int y = fix2y(bf.lat, bf.lon);
 			unsigned int *p = images[fix_hh(&bf)][alt] + (y * width + x);
 			double du = forecast(p);
 			kv_push(double, forecasts, du);
