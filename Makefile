@@ -5,11 +5,10 @@
 CFLAGS = -ansi -g -O0 -Wdeprecated-declarations
 LDFLAGS = -lm
 
-remap: remap.o transform.o igcrecords.o lodepng.o
+remap: remap.o transform.o igcrecords.o lodepng.o statistics.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
-
-utest: $(addsuffix _utest, $(basename transform.c)) $(addsuffix _utest, $(basename igcrecords.c))
 
 lodepng.o: lodepng/lodepng.c
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
+utest: $(addsuffix _utest, $(basename transform.c)) $(addsuffix _utest, $(basename igcrecords.c))
