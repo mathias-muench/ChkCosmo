@@ -14,6 +14,9 @@
 
 #define MEAN_INTERVAL 120
 
+typedef kvec_t(struct fix) fix_kvec;
+typedef kvec_t(double) double_kvec;
+
 static double zip(double q, double i, double j, double b)
 {
 	double zz = 1;
@@ -98,7 +101,7 @@ static void free_images(unsigned *images[24][2])
 	}
 }
 
-size_t time_interval(kvec_t(struct fix) *b_fixes, size_t pos, unsigned dt) {
+size_t time_interval(fix_kvec *b_fixes, size_t pos, unsigned dt) {
 	int i;
 	struct fix df = { 0 };
 	for (i = pos; df.time < dt; i--) {
@@ -109,7 +112,7 @@ size_t time_interval(kvec_t(struct fix) *b_fixes, size_t pos, unsigned dt) {
 	return pos - i;
 }
 
-double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
+double mean(fix_kvec *b_fixes, size_t pos, size_t interval) {
 	int i;
 	double dh = 0;
 	for (i = pos; i > pos - interval; i--) {
@@ -122,7 +125,7 @@ double mean(kvec_t(struct fix) *b_fixes, size_t pos, size_t interval) {
 	return dh / interval;
 }
 
-double mean_fc(kvec_t(double) *forecasts, size_t pos, size_t interval) {
+double mean_fc(double_kvec *forecasts, size_t pos, size_t interval) {
 	int i;
 	double du = 0;
 	for (i = pos; i > pos - interval; i--) {
@@ -186,9 +189,9 @@ void doit(const char *dirname, const char *date)
 	double syy = 0;
 	unsigned nr = 0;
 
-	kvec_t(struct fix) b_fixes;
+	fix_kvec b_fixes;
 	kv_init(b_fixes);
-	kvec_t(double) forecasts;
+	double_kvec forecasts;
 	kv_init(forecasts);
 	while (fgets(line, 80, stdin)) {
 		if (line[0] == 'B') {
