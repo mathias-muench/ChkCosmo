@@ -2,7 +2,7 @@
 	$(CC) -DCU $(CFLAGS) $(LDFLAGS) -o $@ $^
 	./$@
 
-CFLAGS = -ansi -g -O0 -Wdeprecated-declarations
+CFLAGS = -std=c99 -g -O0 -Wdeprecated-declarations
 LDFLAGS = -lm
 
 remap: remap.o transform.o igcrecords.o lodepng.o statistics.o

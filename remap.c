@@ -14,6 +14,12 @@
 typedef kvec_t(struct fix) fix_kvec;
 typedef kvec_t(double) double_kvec;
 
+struct interval {
+	int startPos;
+	int endPos;
+};
+typedef kvec_t(struct interval) interval_kvec;
+
 static int load_images(unsigned *out[24][2], unsigned *w, unsigned *h, const char *dirname, const char *date)
 {
 	int result = 0;
@@ -90,6 +96,33 @@ double mean_fc(double_kvec *forecasts, size_t pos, size_t interval) {
 	return du / interval;
 }
 
+interval_kvec mark_climb(interval_kvec climb_zones, fix_kvec fixes) {
+	int i;
+	int startPos = 0;
+	int endPos = 0;
+	for (i = 1; i < kv_size(fixes); i++) {
+		size_t interval = time_interval(&fixes, i, MEAN_INTERVAL);
+		double dh = mean(&fixes, i, interval);
+		if (dh > 0.5 && startPos == 0 && endPos == 0) {
+			startPos = i - interval;
+		}
+		if (dh < 0.0 && startPos != 0 && endPos == 0) {
+			endPos = i - interval;
+		}
+
+		if (startPos && endPos) {
+			if (startPos != endPos) {
+				struct interval zone;
+				zone.startPos = startPos;
+				zone.endPos = endPos;
+				kv_push(struct interval, climb_zones, zone);
+			}
+			startPos = endPos = 0;
+		}
+	}
+	return climb_zones;
+}
+
 void doit(const char *dirname, const char *date)
 {
 	int error;
@@ -132,6 +165,16 @@ void doit(const char *dirname, const char *date)
 				kv_push(struct fix, b_fixes, bf);
 			}
 		}
+	}
+
+    interval_kvec climb_zones; 
+	kv_init(climb_zones);
+    climb_zones = mark_climb(climb_zones, b_fixes);
+	for (int i = 0; i < kv_size(climb_zones); i++) {
+		struct fix bs = kv_A(b_fixes, kv_A(climb_zones, i).startPos);
+		struct fix be = kv_A(b_fixes, kv_A(climb_zones, i).endPos);
+			if (be.alt >= 3000)
+		printf("# %02d%02d%02d %02d%02d%02d\n", fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
 	}
 
 	assert(kv_size(b_fixes) > MEAN_INTERVAL);
