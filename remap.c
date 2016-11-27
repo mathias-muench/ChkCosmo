@@ -97,6 +97,7 @@ double mean_fc(double_kvec *forecasts, size_t pos, size_t interval) {
 }
 
 interval_kvec mark_climb(interval_kvec climb_zones, fix_kvec fixes) {
+	assert(kv_size(fixes) > MEAN_INTERVAL);
 	int i;
 	int startPos = 0;
 	int endPos = 0;
@@ -167,14 +168,38 @@ void doit(const char *dirname, const char *date)
 		}
 	}
 
-    interval_kvec climb_zones; 
-	kv_init(climb_zones);
-    climb_zones = mark_climb(climb_zones, b_fixes);
-	for (int i = 0; i < kv_size(climb_zones); i++) {
-		struct fix bs = kv_A(b_fixes, kv_A(climb_zones, i).startPos);
-		struct fix be = kv_A(b_fixes, kv_A(climb_zones, i).endPos);
-			if (be.alt >= 3000)
-		printf("# %02d%02d%02d %02d%02d%02d\n", fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
+	{
+		double sxy = 0;
+		double sx = 0;
+		double sy = 0;
+		double sxx = 0;
+		double syy = 0;
+		unsigned nr = 0;
+		interval_kvec climb_zones; 
+		kv_init(climb_zones);
+		climb_zones = mark_climb(climb_zones, b_fixes);
+		for (int i = 0; i < kv_size(climb_zones); i++) {
+			int startPos = kv_A(climb_zones, i).startPos;
+			int endPos = kv_A(climb_zones, i).endPos;
+			struct fix bs = kv_A(b_fixes, startPos);
+			struct fix be = kv_A(b_fixes, endPos);
+			if (be.alt >= 3000) {
+				double dh = mean(&b_fixes, endPos, endPos - startPos);
+				double du = mean_fc(&forecasts, endPos, endPos - startPos);
+
+				printf("%6.2f\t%6.2f\t# %02d%02d%02d %02d%02d%02d\n", dh, du, fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
+
+
+				sxy += dh * du;
+				sx += dh;
+				sy += du;
+				sxx += dh * dh;
+				syy += du * du;
+				nr++;
+			}
+		}
+		double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
+		printf("# %f %d %f\n", r, nr, pvalue(nr, r));
 	}
 
 	assert(kv_size(b_fixes) > MEAN_INTERVAL);
