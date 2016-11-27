@@ -136,12 +136,6 @@ void doit(const char *dirname, const char *date)
 
 
 	char line[80];
-	double sxy = 0;
-	double sx = 0;
-	double sy = 0;
-	double sxx = 0;
-	double syy = 0;
-	unsigned nr = 0;
 
 	fix_kvec b_fixes;
 	kv_init(b_fixes);
@@ -168,73 +162,34 @@ void doit(const char *dirname, const char *date)
 		}
 	}
 
-	{
-		double sxy = 0;
-		double sx = 0;
-		double sy = 0;
-		double sxx = 0;
-		double syy = 0;
-		unsigned nr = 0;
-		interval_kvec climb_zones; 
-		kv_init(climb_zones);
-		climb_zones = mark_climb(climb_zones, b_fixes);
-		for (int i = 0; i < kv_size(climb_zones); i++) {
-			int startPos = kv_A(climb_zones, i).startPos;
-			int endPos = kv_A(climb_zones, i).endPos;
-			struct fix bs = kv_A(b_fixes, startPos);
-			struct fix be = kv_A(b_fixes, endPos);
-			if (be.alt >= 3000) {
-				double dh = mean(&b_fixes, endPos, endPos - startPos);
-				double du = mean_fc(&forecasts, endPos, endPos - startPos);
+	interval_kvec climb_zones; 
+	kv_init(climb_zones);
+	climb_zones = mark_climb(climb_zones, b_fixes);
 
-				printf("%6.2f\t%6.2f\t# %02d%02d%02d %02d%02d%02d\n", dh, du, fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
+	double sxy = 0;
+	double sx = 0;
+	double sy = 0;
+	double sxx = 0;
+	double syy = 0;
+	unsigned nr = 0;
+	for (int i = 0; i < kv_size(climb_zones); i++) {
+		int startPos = kv_A(climb_zones, i).startPos;
+		int endPos = kv_A(climb_zones, i).endPos;
+		struct fix bs = kv_A(b_fixes, startPos);
+		struct fix be = kv_A(b_fixes, endPos);
+		if (be.alt >= 3000) {
+			double dh = mean(&b_fixes, endPos, endPos - startPos);
+			double du = mean_fc(&forecasts, endPos, endPos - startPos);
 
-
-				sxy += dh * du;
-				sx += dh;
-				sy += du;
-				sxx += dh * dh;
-				syy += du * du;
-				nr++;
-			}
-		}
-		double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
-		printf("# %f %d %f\n", r, nr, pvalue(nr, r));
-	}
-
-	assert(kv_size(b_fixes) > MEAN_INTERVAL);
-
-	int i;
-	int startPos = 0;
-	int endPos = 0;
-	for (i = 1; i < kv_size(b_fixes); i++) {
-		size_t interval = time_interval(&b_fixes, i, MEAN_INTERVAL);
-		double dh = mean(&b_fixes, i, interval);
-		if (dh > 0.5 && startPos == 0 && endPos == 0) {
-			startPos = i - interval;
-		}
-		if (dh < 0.0 && startPos != 0 && endPos == 0) {
-			endPos = i - interval;
-		}
-
-		if (startPos && endPos) {
-			struct fix bs = kv_A(b_fixes, startPos);
-			struct fix be = kv_A(b_fixes, endPos);
-			if (startPos != endPos && be.alt >= 3000) {
-				double dh = mean(&b_fixes, endPos, endPos - startPos);
-				double du = mean_fc(&forecasts, endPos, endPos - startPos);
-
-				printf("%6.2f\t%6.2f\t# %02d%02d%02d %02d%02d%02d\n", dh, du, fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
+			printf("%6.2f\t%6.2f\t# %02d%02d%02d %02d%02d%02d\n", dh, du, fix_hh(&bs),fix_mm(&bs),  fix_ss(&bs), fix_hh(&be),fix_mm(&be),  fix_ss(&be));
 
 
-				sxy += dh * du;
-				sx += dh;
-				sy += du;
-				sxx += dh * dh;
-				syy += du * du;
-				nr++;
-			}
-			startPos = endPos = 0;
+			sxy += dh * du;
+			sx += dh;
+			sy += du;
+			sxx += dh * dh;
+			syy += du * du;
+			nr++;
 		}
 	}
 	double r = (nr * sxy - sx * sy) / sqrt((nr * sxx - sx * sx) * (nr * syy - sy * sy));
