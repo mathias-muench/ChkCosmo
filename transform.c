@@ -73,8 +73,10 @@ double forecast(unsigned int rgba) {
 		du = -2.5;
 	} else if (rgba == 0xFFFF8080) {
 		du = -4.0;
-	} else {
+	} else if ((rgba & 0xFF) != 0 && (rgba & 0xFF) != 255 && rgba & 0xFF == (rgba >> 8) & 0xFF && rgba & 0xFF == (rgba >> 16) & 0xFF) {
 		du = 0.0;
+	} else {
+		du = 99;
 	}
 }
 

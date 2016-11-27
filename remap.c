@@ -117,19 +117,20 @@ void doit(const char *dirname, const char *date)
 		if (line[0] == 'B') {
 			struct fix bf;
 			b_record_to_fix(line, &bf);
-			kv_push(struct fix, b_fixes, bf);
-
+			int x = fix2x(bf.lat, bf.lon);
+			int y = fix2y(bf.lat, bf.lon);
 			size_t alt;
 			if (bf.alt >= 4000) {
 				alt = 1;
 			} else {
 				alt = 0;
 			}
-			int x = fix2x(bf.lat, bf.lon);
-			int y = fix2y(bf.lat, bf.lon);
 			unsigned int *p = images[fix_hh(&bf)][alt] + (y * width + x);
 			double du = forecast(*p);
-			kv_push(double, forecasts, du);
+			if (du != 99) {
+				kv_push(double, forecasts, du);
+				kv_push(struct fix, b_fixes, bf);
+			}
 		}
 	}
 
@@ -151,7 +152,7 @@ void doit(const char *dirname, const char *date)
 		if (startPos && endPos) {
 			struct fix bs = kv_A(b_fixes, startPos);
 			struct fix be = kv_A(b_fixes, endPos);
-			if (be.alt >= 3000) {
+			if (startPos != endPos && be.alt >= 3000) {
 				double dh = mean(&b_fixes, endPos, endPos - startPos);
 				double du = mean_fc(&forecasts, endPos, endPos - startPos);
 
