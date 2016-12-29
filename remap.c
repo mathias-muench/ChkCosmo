@@ -75,25 +75,29 @@ size_t time_interval(fix_kvec *b_fixes, size_t pos, unsigned dt) {
 }
 
 double mean(fix_kvec *b_fixes, size_t pos, size_t interval) {
-	int i;
+	int n = 0;
 	double dh = 0;
-	for (i = pos; i > pos - interval; i--) {
+	for (int i = pos; i > pos - interval; i--) {
 		struct fix lf = kv_A(*b_fixes, i - 1);
 		struct fix bf = kv_A(*b_fixes, i);
 		struct fix df;
 		fix_delta(&df, &bf, &lf);
 		dh += df.alt / df.time;
+		n++;
 	}
-	return dh / interval;
+	return dh / n;
 }
 
 double mean_fc(double_kvec *forecasts, size_t pos, size_t interval) {
-	int i;
+	int n = 0;
 	double du = 0;
-	for (i = pos; i > pos - interval; i--) {
-		du += kv_A(*forecasts, i);
+	for (int i = pos; i > pos - interval; i--) {
+		if (kv_A(*forecasts, i) != 99) {
+			du += kv_A(*forecasts, i);
+			n++;
+		}
 	}
-	return du / interval;
+	return n != 0 ? du / n : 99;
 }
 
 interval_kvec mark_climb(interval_kvec climb_zones, fix_kvec fixes) {

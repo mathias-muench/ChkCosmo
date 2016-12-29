@@ -49,7 +49,7 @@ double forecast(unsigned int rgba) {
 		du = 4.0;
 	} else if (rgba == 0xFFC837FF) {
 		du = 2.5;
-	} else if (rgba == 0xFF6F42FF) {
+	} else if (rgba == 0xFF6E43FD || rgba == 0xFF6E43FE || rgba == 0xFF6D44FD || rgba == 0xFF6D43FD || rgba == 0xFF6C44FC || rgba == 0xFF6C44FD || rgba == 0xFF6F42FF || rgba == 0xFF6D44FC || rgba == 0xFF6B45FB || rgba == 0xFF6946FA) {
 		du = 1.5;
 	} else if (rgba == 0xFF4040FF) {
 		du = 1.0;
@@ -73,7 +73,7 @@ double forecast(unsigned int rgba) {
 		du = -2.5;
 	} else if (rgba == 0xFFFF8080) {
 		du = -4.0;
-	} else if ((rgba & 0xFF) != 0 && (rgba & 0xFF) != 255 && rgba & 0xFF == (rgba >> 8) & 0xFF && rgba & 0xFF == (rgba >> 16) & 0xFF) {
+	} else if ((rgba & 0xFF) > 64 && (rgba & 0xFF) != 255 && (rgba & 0xFF) == ((rgba >> 8) & 0xFF) && (rgba & 0xFF) == ((rgba >> 16) & 0xFF)) {
 		du = 0.0;
 	} else {
 		du = 99;
